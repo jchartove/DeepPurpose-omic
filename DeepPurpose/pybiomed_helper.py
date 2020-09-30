@@ -2685,10 +2685,12 @@ def calcPubChemFingerPart1(mol, **kwargs):
 
   res = ctor(len(PubchemKeys) + 1)
   for i, (patt, count) in enumerate(PubchemKeys):
-    if patt is not None:
+    if patt is not None and mol is not None:
+      print('ye')
       if count == 0:
         res[i + 1] = mol.HasSubstructMatch(patt)
       else:
+        print('ne')
         matches = mol.GetSubstructMatches(patt)
         if len(matches) > count:
           res[i + 1] = 1

@@ -161,40 +161,26 @@ class DBTA_o:
 	'''
 
 	def __init__(self, **config):
-		drug_encoding = config['drug_encoding']
-		target_encoding = config['target_encoding']
+		#drug_encoding = config['drug_encoding']
+		#target_encoding = config['target_encoding']
 
-		if drug_encoding == 'Morgan' or drug_encoding=='Pubchem' or drug_encoding=='Daylight' or drug_encoding=='rdkit_2d_normalized':
-			# Future TODO: support multiple encoding scheme for static input 
-			self.model_drug = MLP(config['input_dim_drug'], config['hidden_dim_drug'], config['mlp_hidden_dims_drug'])
-		elif drug_encoding == 'CNN':
-			self.model_drug = CNN('drug', **config)
-		elif drug_encoding == 'CNN_RNN':
-			self.model_drug = CNN_RNN('drug', **config)
-		elif drug_encoding == 'Transformer':
-			self.model_drug = transformer('drug', **config)
-		elif drug_encoding == 'MPNN':
-			self.model_drug = MPNN(config['hidden_dim_drug'], config['mpnn_depth'])
-		else:
-			raise AttributeError('Please use one of the available encoding method.')
+		self.model_drug.MLP = MLP(config['input_dim_drug'], config['hidden_dim_drug'], config['mlp_hidden_dims_drug'])
+        self.model_drug.CNN = CNN('drug', **config)
+        self.model_drug.CNN_RNN = CNN_RNN('drug', **config)
+        self.model_drug.transformer = transformer('drug', **config)
+        self.model_drug.MPNN = MPNN(config['hidden_dim_drug'], config['mpnn_depth'])
 
-		if target_encoding == 'AAC' or target_encoding == 'PseudoAAC' or  target_encoding == 'Conjoint_triad' or target_encoding == 'Quasi-seq':
-			self.model_protein = MLP(config['input_dim_protein'], config['hidden_dim_protein'], config['mlp_hidden_dims_target'])
-		elif target_encoding == 'CNN':
-			self.model_protein = CNN('protein', **config)
-		elif target_encoding == 'CNN_RNN':
-			self.model_protein = CNN_RNN('protein', **config)
-		elif target_encoding == 'Transformer':
-			self.model_protein = transformer('protein', **config)
-		else:
-			raise AttributeError('Please use one of the available encoding method.')
+		self.model_protein.MLP = MLP(config['input_dim_protein'], config['hidden_dim_protein'], config['mlp_hidden_dims_target'])
+        self.model_protein.CNN = CNN('protein', **config)
+        self.model_protein.CNN_RNN = CNN_RNN('protein', **config)
+        self.model_protein.transformer = transformer('protein', **config)
 
 		self.model = Classifier_o(self.model_drug, self.model_protein, **config)
 		self.config = config
 		self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 		
-		self.drug_encoding = drug_encoding
-		self.target_encoding = target_encoding
+		#self.drug_encoding = drug_encoding
+		#self.target_encoding = target_encoding
 		self.result_folder = config['result_folder']
 		if not os.path.exists(self.result_folder):
 			os.mkdir(self.result_folder)            
@@ -489,190 +475,104 @@ class DBTA_o:
 		self.model.load_state_dict(state_dict)
 
 		self.binary = self.config['binary']
+        
+def generate_config_o(drug_encoding = None, target_encoding = None, 
+					result_folder = "./result/",
+					input_dim_drug = 1024, 
+					input_dim_protein = 8420,
+					hidden_dim_drug = 256, 
+					hidden_dim_protein = 256,
+					cls_hidden_dims = [1024, 1024, 512],
+					mlp_hidden_dims_drug = [1024, 256, 64],
+					mlp_hidden_dims_target = [1024, 256, 64],
+					batch_size = 256,
+					train_epoch = 10,
+					test_every_X_epoch = 20,
+					LR = 1e-4,
+					decay = 0,
+					transformer_emb_size_drug = 128,
+					transformer_intermediate_size_drug = 512,
+					transformer_num_attention_heads_drug = 8,
+					transformer_n_layer_drug = 8,
+					transformer_emb_size_target = 64,
+					transformer_intermediate_size_target = 256,
+					transformer_num_attention_heads_target = 4,
+					transformer_n_layer_target = 2,
+					transformer_dropout_rate = 0.1,
+					transformer_attention_probs_dropout = 0.1,
+					transformer_hidden_dropout_rate = 0.1,
+					mpnn_hidden_size = 50,
+					mpnn_depth = 3,
+					cnn_drug_filters = [32,64,96],
+					cnn_drug_kernels = [4,6,8],
+					cnn_target_filters = [32,64,96],
+					cnn_target_kernels = [4,8,12],
+					rnn_Use_GRU_LSTM_drug = 'GRU',
+					rnn_drug_hid_dim = 64,
+					rnn_drug_n_layers = 2,
+					rnn_drug_bidirectional = True,
+					rnn_Use_GRU_LSTM_target = 'GRU',
+					rnn_target_hid_dim = 64,
+					rnn_target_n_layers = 2,
+					rnn_target_bidirectional = True,
+					num_workers = 0                    
+					):
 
-class transformer(nn.Sequential):
-	def __init__(self, encoding, **config):
-		super(transformer, self).__init__()
-		if encoding == 'drug':
-			self.emb = Embeddings(config['input_dim_drug'], config['transformer_emb_size_drug'], 50, config['transformer_dropout_rate'])
-			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_drug'], 
-													config['transformer_emb_size_drug'], 
-													config['transformer_intermediate_size_drug'], 
-													config['transformer_num_attention_heads_drug'],
-													config['transformer_attention_probs_dropout'],
-													config['transformer_hidden_dropout_rate'])
-		elif encoding == 'protein':
-			self.emb = Embeddings(config['input_dim_protein'], config['transformer_emb_size_target'], 545, config['transformer_dropout_rate'])
-			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_target'], 
-													config['transformer_emb_size_target'], 
-													config['transformer_intermediate_size_target'], 
-													config['transformer_num_attention_heads_target'],
-													config['transformer_attention_probs_dropout'],
-													config['transformer_hidden_dropout_rate'])
+	base_config = {'input_dim_drug': input_dim_drug,
+					'input_dim_protein': input_dim_protein,
+					'hidden_dim_drug': hidden_dim_drug, # hidden dim of drug
+					'hidden_dim_protein': hidden_dim_protein, # hidden dim of protein
+					'cls_hidden_dims' : cls_hidden_dims, # decoder classifier dim 1
+					'batch_size': batch_size,
+					'train_epoch': train_epoch,
+					'test_every_X_epoch': test_every_X_epoch, 
+					'LR': LR,
+					'drug_encoding': drug_encoding,
+					'target_encoding': target_encoding, 
+					'result_folder': result_folder,
+					'binary': False,
+					'num_workers': num_workers                  
+	}
+	if not os.path.exists(base_config['result_folder']):
+		os.makedirs(base_config['result_folder'])
+	
+		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
+		base_config['input_dim_drug'] = 881 #could be 2048 or 200 or 2586
+		base_config['cnn_drug_filters'] = cnn_drug_filters
+		base_config['cnn_drug_kernels'] = cnn_drug_kernels
+		base_config['rnn_Use_GRU_LSTM_drug'] = rnn_Use_GRU_LSTM_drug
+		base_config['rnn_drug_hid_dim'] = rnn_drug_hid_dim
+		base_config['rnn_drug_n_layers'] = rnn_drug_n_layers
+		base_config['rnn_drug_bidirectional'] = rnn_drug_bidirectional 
+		base_config['transformer_emb_size_drug'] = transformer_emb_size_drug
+		base_config['transformer_num_attention_heads_drug'] = transformer_num_attention_heads_drug
+		base_config['transformer_intermediate_size_drug'] = transformer_intermediate_size_drug
+		base_config['transformer_n_layer_drug'] = transformer_n_layer_drug
+		base_config['transformer_dropout_rate'] = transformer_dropout_rate
+		base_config['transformer_attention_probs_dropout'] = transformer_attention_probs_dropout
+		base_config['transformer_hidden_dropout_rate'] = transformer_hidden_dropout_rate
+		base_config['hidden_dim_drug'] = transformer_emb_size_drug #could also be hidden_dim_drug
+		base_config['batch_size'] = batch_size 
+		base_config['mpnn_hidden_size'] = mpnn_hidden_size
+		base_config['mpnn_depth'] = mpnn_depth
 
-	### parameter v (tuple of length 2) is from utils.drug2emb_encoder 
-	def forward(self, v):
-		e = v[0].long().to(device)
-		e_mask = v[1].long().to(device)
-		ex_e_mask = e_mask.unsqueeze(1).unsqueeze(2)
-		ex_e_mask = (1.0 - ex_e_mask) * -10000.0
+		base_config['mlp_hidden_dims_target'] = mlp_hidden_dims_target # MLP classifier dim 1				
+		base_config['input_dim_protein'] = 30 #could be 343 or 100 or 4114
+		base_config['cnn_target_filters'] = cnn_target_filters
+		base_config['cnn_target_kernels'] = cnn_target_kernels
+		base_config['rnn_Use_GRU_LSTM_target'] = rnn_Use_GRU_LSTM_target
+		base_config['rnn_target_hid_dim'] = rnn_target_hid_dim
+		base_config['rnn_target_n_layers'] = rnn_target_n_layers
+		base_config['rnn_target_bidirectional'] = rnn_target_bidirectional 
+		base_config['cnn_target_filters'] = cnn_target_filters
+		base_config['cnn_target_kernels'] = cnn_target_kernels
+		base_config['transformer_emb_size_target'] = transformer_emb_size_target
+		base_config['transformer_num_attention_heads_target'] = transformer_num_attention_heads_target
+		base_config['transformer_intermediate_size_target'] = transformer_intermediate_size_target
+		base_config['transformer_n_layer_target'] = transformer_n_layer_target	
+		base_config['transformer_dropout_rate'] = transformer_dropout_rate
+		base_config['transformer_attention_probs_dropout'] = transformer_attention_probs_dropout
+		base_config['transformer_hidden_dropout_rate'] = transformer_hidden_dropout_rate
+		base_config['hidden_dim_protein'] = transformer_emb_size_target
 
-		emb = self.emb(e)
-		encoded_layers = self.encoder(emb.float(), ex_e_mask.float())
-		return encoded_layers[:,0]
-
-
-class CNN(nn.Sequential):
-	def __init__(self, encoding, **config):
-		super(CNN, self).__init__()
-		if encoding == 'drug':
-			in_ch = [63] + config['cnn_drug_filters']
-			kernels = config['cnn_drug_kernels']
-			layer_size = len(config['cnn_drug_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
-													kernel_size = kernels[i]) for i in range(layer_size)])
-			self.conv = self.conv.double()
-			n_size_d = self._get_conv_output((63, 100))
-			#n_size_d = 1000
-			self.fc1 = nn.Linear(n_size_d, config['hidden_dim_drug'])
-
-		if encoding == 'protein':
-			in_ch = [26] + config['cnn_target_filters']
-			kernels = config['cnn_target_kernels']
-			layer_size = len(config['cnn_target_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
-													kernel_size = kernels[i]) for i in range(layer_size)])
-			self.conv = self.conv.double()
-			n_size_p = self._get_conv_output((26, 1000))
-
-			self.fc1 = nn.Linear(n_size_p, config['hidden_dim_protein'])
-
-	def _get_conv_output(self, shape):
-		bs = 1
-		input = Variable(torch.rand(bs, *shape))
-		output_feat = self._forward_features(input.double())
-		n_size = output_feat.data.view(bs, -1).size(1)
-		return n_size
-
-	def _forward_features(self, x):
-		for l in self.conv:
-			x = F.relu(l(x))
-		x = F.adaptive_max_pool1d(x, output_size=1)
-		return x
-
-	def forward(self, v):
-		v = self._forward_features(v.double())
-		v = v.view(v.size(0), -1)
-		v = self.fc1(v.float())
-		return v
-
-class CNN_RNN(nn.Sequential):
-	def __init__(self, encoding, **config):
-		super(CNN_RNN, self).__init__()
-		if encoding == 'drug':
-			in_ch = [63] + config['cnn_drug_filters']
-			self.in_ch = in_ch[-1]
-			kernels = config['cnn_drug_kernels']
-			layer_size = len(config['cnn_drug_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
-													kernel_size = kernels[i]) for i in range(layer_size)])
-			self.conv = self.conv.double()
-			n_size_d = self._get_conv_output((63, 100)) # auto get the seq_len of CNN output
-
-			if config['rnn_Use_GRU_LSTM_drug'] == 'LSTM':
-				self.rnn = nn.LSTM(input_size = in_ch[-1], 
-								hidden_size = config['rnn_drug_hid_dim'],
-								num_layers = config['rnn_drug_n_layers'],
-								batch_first = True,
-								bidirectional = config['rnn_drug_bidirectional'])
-			
-			elif config['rnn_Use_GRU_LSTM_drug'] == 'GRU':
-				self.rnn = nn.GRU(input_size = in_ch[-1], 
-								hidden_size = config['rnn_drug_hid_dim'],
-								num_layers = config['rnn_drug_n_layers'],
-								batch_first = True,
-								bidirectional = config['rnn_drug_bidirectional'])
-			else:
-				raise AttributeError('Please use LSTM or GRU.')
-			direction = 2 if config['rnn_drug_bidirectional'] else 1
-			self.rnn = self.rnn.double()
-			self.fc1 = nn.Linear(config['rnn_drug_hid_dim'] * direction * n_size_d, config['hidden_dim_drug'])
-
-		if encoding == 'protein':
-			in_ch = [26] + config['cnn_target_filters']
-			self.in_ch = in_ch[-1]
-			kernels = config['cnn_target_kernels']
-			layer_size = len(config['cnn_target_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
-													kernel_size = kernels[i]) for i in range(layer_size)])
-			self.conv = self.conv.double()
-			n_size_p = self._get_conv_output((26, 1000))
-
-			if config['rnn_Use_GRU_LSTM_target'] == 'LSTM':
-				self.rnn = nn.LSTM(input_size = in_ch[-1], 
-								hidden_size = config['rnn_target_hid_dim'],
-								num_layers = config['rnn_target_n_layers'],
-								batch_first = True,
-								bidirectional = config['rnn_target_bidirectional'])
-
-			elif config['rnn_Use_GRU_LSTM_target'] == 'GRU':
-				self.rnn = nn.GRU(input_size = in_ch[-1], 
-								hidden_size = config['rnn_target_hid_dim'],
-								num_layers = config['rnn_target_n_layers'],
-								batch_first = True,
-								bidirectional = config['rnn_target_bidirectional'])
-			else:
-				raise AttributeError('Please use LSTM or GRU.')
-			direction = 2 if config['rnn_target_bidirectional'] else 1
-			self.rnn = self.rnn.double()
-			self.fc1 = nn.Linear(config['rnn_target_hid_dim'] * direction * n_size_p, config['hidden_dim_protein'])
-		self.encoding = encoding
-		self.config = config
-
-	def _get_conv_output(self, shape):
-		bs = 1
-		input = Variable(torch.rand(bs, *shape))
-		output_feat = self._forward_features(input.double())
-		n_size = output_feat.data.view(bs, self.in_ch, -1).size(2)
-		return n_size
-
-	def _forward_features(self, x):
-		for l in self.conv:
-			x = F.relu(l(x))
-		return x
-
-	def forward(self, v):
-		for l in self.conv:
-			v = F.relu(l(v.double()))
-		batch_size = v.size(0)
-		v = v.view(v.size(0), v.size(2), -1)
-
-		if self.encoding == 'protein':
-			if self.config['rnn_Use_GRU_LSTM_target'] == 'LSTM':
-				direction = 2 if self.config['rnn_target_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(device)
-				c0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(device)
-				v, (hn, cn) = self.rnn(v.double(), (h0.double(), c0.double()))
-			else:
-				# GRU
-				direction = 2 if self.config['rnn_target_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(device)
-				v, hn = self.rnn(v.double(), h0.double())
-		else:
-			if self.config['rnn_Use_GRU_LSTM_drug'] == 'LSTM':
-				direction = 2 if self.config['rnn_drug_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(device)
-				c0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(device)
-				v, (hn, cn) = self.rnn(v.double(), (h0.double(), c0.double()))
-			else:
-				# GRU
-				direction = 2 if self.config['rnn_drug_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(device)
-				v, hn = self.rnn(v.double(), h0.double())
-		v = torch.flatten(v, 1)
-		v = self.fc1(v.float())
-		return v
+	return base_config
