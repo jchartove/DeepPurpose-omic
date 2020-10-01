@@ -3,61 +3,140 @@ import streamlit as st
 # working with sample data.
 import numpy as np
 import pandas as pd
+import os
+import time
 
-st.title('Import data')
+a = st.radio(
+	'What do you want to do?',
+	('Generate new IC50 prediction model','Load pretrained model'))
 
-st.write("Here's our first attempt at using data to create a table:")
-st.write(pd.DataFrame({
-    'first column': [1, 2, 3, 4],
-    'second column': [10, 20, 30, 40]
-}))
+if a == 'Generate new IC50 prediction model':
+	st.title('BindingDB input feature selection')
 
-chart_data = pd.DataFrame(
-     np.random.randn(20, 3),
-     columns=['a', 'b', 'c'])
+	ki = st.checkbox('Ki (nM)')
+	kd = st.checkbox('Kd (nM)')
+	ec50 = st.checkbox('EC50 (nM)')
+	organism = st.checkbox('Target Source Organism') 
+	ph = st.checkbox('pH')
+	temp = st.checkbox('Temp (C)')
+	
+	interp = st.selectbox(
+		'Method to impute missing values?',
+	   ('Simple', 'Iterative','k nearest neighbors'))
+
+	st.title('Input encodings')
+
+	st.subheader('Drug encoding')
+	morgan = st.checkbox('Morgan Extended-Connectivity Fingerprints')
+	pubchem = st.checkbox('Pubchem Substructure-based Fingerprints')
+	daylight = st.checkbox('Daylight-type fingerprints')
+	rdk = st.checkbox('Normalized Descriptastorus')
+	
+	st.subheader('Target encoding')
+	aac = st.checkbox('Amino acid composition up to 3-mers')
+	pAAC = st.checkbox('Pseudo amino acid composition')
+	conjoint = st.checkbox('Conjoint triad features')
+	quasi = st.checkbox('Quasi-sequence order descriptor')
+
+	st.title('Model selection')
+
+	custom_example = "drug_encoding = drug_encoding, target_encoding = target_encoding, cls_hidden_dims = [1024,1024,512], train_epoch = 3, LR = 0.001, batch_size = 128,hidden_dim_drug = 128,mpnn_hidden_size = 128,mpnn_depth = 3"
+		
+	option = st.selectbox(
+		'Which model architecture should be trained on this input?',
+	   ('DeepIC50', 'MPNN', 'SVM', 'Ridge regressor', 'XGBoost', 'Custom architecture'))
+
+	if option == 'Custom architecture':
+		st.text_input('Paste model configuration here', value=custom_example)
+
+	output = st.radio(
+		'Which value should the model predict?',
+	   ('IC50','pIC50','Order of magnitude of IC50'))
+
+	if st.button('Train model'):
+		'Training ', option, '...'
+
+		# Add a placeholder
+		latest_iteration = st.empty()
+		bar = st.progress(0)
+
+		for i in range(100):
+		  # Update the progress bar with each iteration.
+		  latest_iteration.text(f'Iteration {i+1}')
+		  bar.progress(i + 1)
+		  time.sleep(0.1)
+
+		'Model complete'
+
+		sav = st.button('Save trained model')
+
+def file_selector(folder_path='.'):
+    filenames = os.listdir(folder_path)
+    selected_filename = st.selectbox('Select a file', filenames)
+    return os.path.join(folder_path, selected_filename)
+
+if a == 'Load pretrained model':
+	filename = file_selector()
+	st.write('You selected `%s`' % filename)
+
+	'Loading...'
+
+	# Add a placeholder
+	latest_iteration = st.empty()
+	bar = st.progress(0)
+
+	for i in range(100):
+	  # Update the progress bar with each iteration.
+	  latest_iteration.text(f'{i+1} percent')
+	  bar.progress(i + 1)
+	  time.sleep(0.1)
+
+	'Model loaded'
+
+st.title('Model usage')
+
+drug_example = "CC1=C2C=C(C=CC2=NN1)C3=CC(=CN=C3)OCC(CC4=CC=CC=C4)N"
+target_example = "MKKFFDSRREQGGSGLGSGSSGGGGSTSGLGSGYIGRVFGIGRQQVTVDEVLAEGGFAIVFLVRTSNGMKCALKRMFVNNEHDLQVCKREIQIMRDLSGHKNIVGYIDSSINNVSSGDVWEVLILMDFCRGGQVVNLMNQRLQTGFTENEVLQIFCDTCEAVARLHQCKTPIIHRDLKVENILLHDRGHYVLCDFGSATNKFQNPQTEGVNAVEDEIKKYTTLSYRAPEMVNLYSGKIITTKADIWALGCLLYKLCYFTLPFGESQVAICDGNFTIPDNSRYSQDMHCLIRYMLEPDPDKRPDIYQVSYFSFKLLKKECPIPNVQNSPIPAKLPEPVKASEAAAKKTQPKARLTDPIPTTETSIAPRQRPKAGQTQPNPGILPIQPALTPRKRATVQPPPQAAGSSNQPGLLASVPQPKPQAPPSQPLPQTQAKQPQAPPTPQQTPSTQAQGLPAQAQATPQHQQQLFLKQQQQQQQPPPAQQQPAGTFYQQQQAQTQQFQAVHPATQKPAIAQFPVVSQGGSQQQLMQNFYQQQQQQQQQQQQQQLATALHQQQLMTQQAALQQKPTMAAGQQPQPQPAAAPQPAPAQEPAIQAPVRQQPKVQTTPPPAVQGQKVGSLTPPSSPKTQRAGHRRILSDVTHSAVFGVPASKSTQLLQAAAAEASLNKSKSATTTPSGSPRTSQQNVYNPSEGSTWNPFDDDNFSKLTAEELLNKDFAKLGEGKHPEKLGGSAESLIPGFQSTQGDAFATTSFSAGTAEKRKGGQTVDSGLPLLSVSDPFIPLQVPDAPEKLIEGLKSPDTSLLLPDLLPMTDPFGSTSDAVIEKADVAVESLIPGLEPPVPQRLPSQTESVTSNRTDSLTGEDSLLDCSLLSNPTTDLLEEFAPTAISAPVHKAAEDSNLISGFDVPEGSDKVAEDEFDPIPVLITKNPQGGHSRNSSGSSESSLPNLARSLLLVDQLIDL"
+
+drug = st.text_input('Drug (SMILES format)', value=drug_example)
+target = st.text_input('Target amino chain', value=target_example)
+
+if ki:
+	st.text_input('Ki (nM)')
+if kd:
+	st.text_input('Kd (nM)')
+if ec50:
+	st.text_input('EC50 (nM)')
+if organism:
+	st.text_input('Target Source Organism') 
+if ph:
+	st.text_input('pH')
+if temp:
+	st.checkbox('Temp (C)')
+
+if st.button('Predict IC50'):
+	'The predicted pIC50 is 7.395412921905518'
+
+st.title('Model metrics')
+
+from PIL import Image
+image1 = Image.open('imgs/metric1.png')
+image2 = Image.open('imgs/metric2.png')
+
+st.image(image1, use_column_width=True)
+st.image(image2, use_column_width=True)
 
 st.title('EDA')
 
-st.line_chart(chart_data)
+image3 = Image.open('imgs/eda1.png')
+image4 = Image.open('imgs/eda2.png')
 
-st.title('Feature selection')
+st.image(image3, use_column_width=True)
+st.image(image4, use_column_width=True)
 
-if st.checkbox('Show dataframe'):
-    chart_data = pd.DataFrame(
-       np.random.randn(20, 3),
-       columns=['a', 'b', 'c'])
-
-    st.line_chart(chart_data)
-#Ligand SMILES.
-#Standard InChI.
-#Target Source Organism According to Curator or DataSource. Organism associated with the protein Target.
-#Ki (nM)
-#Kd (nM)
-#EC50 (nM)
-#kon (M-1-s-1)
-#koff (s-1)
-#pH.
-#Temp (C)
-#Morgan	Extended-Connectivity Fingerprints
-#Pubchem	Pubchem Substructure-based Fingerprints
-#Daylight	Daylight-type fingerprints
-#rdkit_2d_normalized	Normalized Descriptastorus
-#AAC	Amino acid composition up to 3-mers
-#PseudoAAC	Pseudo amino acid composition
-#Conjoint_triad	Conjoint triad features
-#Quasi-seq	Quasi-sequence order descriptor
-
-#do i want to provide the network layer encodings? what if i'm not using the NN?
-#default is a multilayer perceptron
-
-	
-st.title('Model selection')
-    
-option = st.selectbox(
-    'Which number do you like best?',
-     df['first column'])
-
-'You selected: ', option
+DATE_COLUMN = 'date/time'
+DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
+         'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
 
 @st.cache
 def load_data(nrows):
@@ -72,18 +151,13 @@ data_load_state = st.text('Loading data...')
 # Load 10,000 rows of data into the dataframe.
 data = load_data(10000)
 # Notify the reader that the data was successfully loaded.
-data_load_state.text('Loading data...done!')
+data_load_state.text('Data loaded')
 
 if st.checkbox('Show raw data'):
     st.subheader('Raw data')
     st.write(data)
 
-st.subheader('Number of pickups by hour')
+st.subheader('Distribution of IC50 values')
 hist_values = np.histogram(
     data[DATE_COLUMN].dt.hour, bins=24, range=(0,24))[0]
 st.bar_chart(hist_values)
-
-hour_to_filter = st.slider('hour', 0, 23, 17)  # min: 0h, max: 23h, default: 17h
-filtered_data = data[data[DATE_COLUMN].dt.hour == hour_to_filter]
-st.subheader(f'Map of all pickups at {hour_to_filter}:00')
-st.map(filtered_data)

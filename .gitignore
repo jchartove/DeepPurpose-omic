@@ -19,3 +19,7 @@ Ax_output/
 model/
 BindingDB_All_2020m2.tsv.zipzmxtzist.tmp
 df.pkl
+df_data1.csv.gz
+df_data.pkl
+df_data.h5
+df_data.csv
