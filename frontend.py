@@ -112,7 +112,7 @@ if organism:
 if ph:
 	st.text_input('pH')
 if temp:
-	st.checkbox('Temp (C)')
+	st.text_input('Temp (C)')
 
 if st.button('Predict IC50'):
 	'The predicted pIC50 is 7.395412921905518'
