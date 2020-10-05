@@ -2685,12 +2685,11 @@ def calcPubChemFingerPart1(mol, **kwargs):
 
   res = ctor(len(PubchemKeys) + 1)
   for i, (patt, count) in enumerate(PubchemKeys):
+    print(i)
     if patt is not None and mol is not None:
-      print('ye')
       if count == 0:
         res[i + 1] = mol.HasSubstructMatch(patt)
       else:
-        print('ne')
         matches = mol.GetSubstructMatches(patt)
         if len(matches) > count:
           res[i + 1] = 1
@@ -3363,14 +3362,15 @@ def func_8(mol, bits):
 def calcPubChemFingerPart2(mol):# 116-263
 
     bits=[0]*148
-    bits=func_1(mol,bits)[1]
-    bits=func_2(mol,bits)[1]
-    bits=func_3(mol,bits)[1]
-    bits=func_4(mol,bits)[1]
-    bits=func_5(mol,bits)[1]
-    bits=func_6(mol,bits)[1]
-    bits=func_7(mol,bits)[1]
-    bits=func_8(mol,bits)
+    if mol is not None:
+        bits=func_1(mol,bits)[1]
+        bits=func_2(mol,bits)[1]
+        bits=func_3(mol,bits)[1]
+        bits=func_4(mol,bits)[1]
+        bits=func_5(mol,bits)[1]
+        bits=func_6(mol,bits)[1]
+        bits=func_7(mol,bits)[1]
+        bits=func_8(mol,bits)
 
     return bits
 
