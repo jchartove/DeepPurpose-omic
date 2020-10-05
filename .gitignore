@@ -24,3 +24,7 @@ df_data.pkl
 df_data.h5
 df_data.csv
 df_data_small.pkl
+df_data2.csv.gz
+df_data3.csv.gz
+df_data_small2.pkl
+df_data_small3.pkl
