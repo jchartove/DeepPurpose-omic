@@ -41,3 +41,4 @@ df_data_small3.csv.gz
 *.gz
 *.gz
 *.gz
+*.pkl

@@ -71,7 +71,7 @@ if a == 'Generate new IC50 prediction model':
           # Update the progress bar with each iteration.
           latest_iteration.text(f'Iteration {i+1}')
           bar.progress(i + 1)
-          time.sleep(0.1)
+          time.sleep(0.03)
 
         'Model complete'
 
@@ -96,7 +96,7 @@ if a == 'Load pretrained model':
       # Update the progress bar with each iteration.
       latest_iteration.text(f'{i+1} percent')
       bar.progress(i + 1)
-      time.sleep(0.1)
+      time.sleep(0.03)
 
     'Model loaded'
 
@@ -116,7 +116,7 @@ if temp:
     st.text_input('Temp (C)')
 
 if st.button('Predict IC50'):
-    'The predicted pIC50 is 7.395412921905518'
+    'The predicted pIC50 is 7.395412921905518 (95% CI: 6.395412921905518-8.395412921905518)'
 
 st.title('Model metrics')
 
