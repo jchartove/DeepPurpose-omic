@@ -30,15 +30,8 @@ df_data_small2.pkl
 df_data_small3.pkl
 df_data_small3.csv.gz
 .gitignore (DESKTOP-47G0Q1C's conflicted copy 2020-10-01)
-df_data_small3.csv.gz
 new_model_10_1 (2).ipynb
 new_model_10_1 (DESKTOP-47G0Q1C's conflicted copy 2020-10-01).ipynb
-df_data_small3.csv.gz
-df_data_small3.csv.gz
 *.gz
-df_data_small3.csv.gz
-df_data_small3.csv.gz
-*.gz
-*.gz
-*.gz
-*.pkl
+
+trainmpnn.pkl
