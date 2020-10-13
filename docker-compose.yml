@@ -1,0 +1,13 @@
+object_detection:
+  image: digicell
+  container_name: digicell
+  restart: always
+  environment:
+     - TERM=xterm
+  hostname: '127.0.0.1'
+  ports:
+     - "8888:8888"         #JupyterNB
+
+  volumes:
+     - C:/Users/Julia/Dropbox/Work/insight/omic/digicell/test.txt:/root/digicell/test.txt
+
