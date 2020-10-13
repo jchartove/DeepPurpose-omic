@@ -3,9 +3,12 @@ import pandas as pd
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.Chem.Fingerprints import FingerprintMols
+<<<<<<< HEAD
 
 import sys
 
+=======
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 from DeepPurpose.pybiomed_helper import _GetPseudoAAC, CalculateAADipeptideComposition, \
 calcPubChemFingerAll, CalculateConjointTriad, GetQuasiSequenceOrder
 import torch
@@ -22,6 +25,10 @@ import pickle
 import wget
 from zipfile import ZipFile 
 import os
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -42,6 +49,10 @@ from prettytable import PrettyTable
 import collections
 
 import os
+<<<<<<< HEAD
+=======
+import time
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 
 from DeepPurpose.utils import *
 from DeepPurpose.model_helper import Encoder_MultipleLayers, Embeddings        
@@ -55,6 +66,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from matplotlib import pyplot as plt
 
 def process_BindingDB_omic(path = None, df = None, temp_ph = True):
+<<<<<<< HEAD
     """
     Fit all three models
             
@@ -63,6 +75,8 @@ def process_BindingDB_omic(path = None, df = None, temp_ph = True):
         
     TODO: parallelize this code across processors
     """
+=======
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     #TODO: allow imputer, allow binary classification
     
     if not os.path.exists(path):
@@ -103,16 +117,27 @@ def process_BindingDB_omic(path = None, df = None, temp_ph = True):
     if temp_ph:
         df = df[df['Temp'].notnull()]
         df = df[df['pH'].notnull()]
+<<<<<<< HEAD
         idx_str = ['IC50','Temp']
+=======
+        idx_str = ['IC50','Temp','pH']
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     else:
         idx_str = ['IC50']
 
     for label in idx_str:
+<<<<<<< HEAD
         df[label] = df[label].astype(str).str.replace('>', '')
         df[label] = df[label].astype(str).str.replace('<', '')
         df[label] = df[label].apply(pd.to_numeric, errors='coerce')
     
     df['pH'] = df['pH'].apply(pd.to_numeric, errors='coerce')
+=======
+        df[label] = df[label].str.replace('>', '')
+        df[label] = df[label].str.replace('<', '')
+        df[label] = df[label].apply(pd.to_numeric, errors='coerce')
+    
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     print('There are ' + str(len(df)) + ' drug target pairs.')
 
     df['pIC50'] = -np.log10(df['IC50'].astype(np.float32)*1e-9 + 1e-10)
@@ -121,6 +146,7 @@ def process_BindingDB_omic(path = None, df = None, temp_ph = True):
     
 def feature_select(df_data, drug_func_list = [drug2emb_encoder,smiles2daylight], 
                     prot_func_list = [CalculateConjointTriad, protein2emb_encoder]):
+<<<<<<< HEAD
                     
     """
     Fit all three models
@@ -131,6 +157,9 @@ def feature_select(df_data, drug_func_list = [drug2emb_encoder,smiles2daylight],
     TODO: parallelize this code across processors
     """
     start = time()
+=======
+    start = time.time()
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 
     column_name = 'SMILES'
     for func in drug_func_list:
@@ -139,7 +168,11 @@ def feature_select(df_data, drug_func_list = [drug2emb_encoder,smiles2daylight],
         unique = pd.Series(df_data[column_name].unique()).apply(func)
         unique_dict = dict(zip(df_data[column_name].unique(), unique))
         df_data[save_column_name] = [unique_dict[i] for i in df_data[column_name]]
+<<<<<<< HEAD
         end = time()
+=======
+        end = time.time()
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
         print("Elapsed time: ", end - start)
         
     column_name = 'Target Sequence'
@@ -149,12 +182,17 @@ def feature_select(df_data, drug_func_list = [drug2emb_encoder,smiles2daylight],
         AA = pd.Series(df_data[column_name].unique()).apply(func)
         AA_dict = dict(zip(df_data[column_name].unique(), AA))
         df_data[save_column_name] = [AA_dict[i] for i in df_data[column_name]]
+<<<<<<< HEAD
         end = time()
+=======
+        end = time.time()
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
         print("Elapsed time: ", end - start)
     
     return df_data
 
 def flattener(x):
+<<<<<<< HEAD
     """
     Fit all three models
             
@@ -163,12 +201,15 @@ def flattener(x):
         
     TODO: parallelize this code across processors
     """
+=======
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     if isinstance(x, collections.Iterable):
         return [a for i in x for a in flattener(i)]
     else:
         return [x]
 
 def data_process_omic(df_data, first_pass, include_org = True):
+<<<<<<< HEAD
     """
     Fit all three models
             
@@ -177,23 +218,36 @@ def data_process_omic(df_data, first_pass, include_org = True):
         
     TODO: parallelize this code across processors
     """
+=======
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     if include_org:
         cat_list = pd.get_dummies(df_data['Organism'], prefix='var')
         df_data=df_data.join(cat_list)
     else:
         cat_list = 0
     
+<<<<<<< HEAD
     discard=['SMILES','Target Sequence','Organism','IC50','pIC50','ID','InChI','PubChem_ID','UniProt_ID','Kd','Ki','EC50','kon','koff']
+=======
+    discard=['SMILES','Target Sequence','Organism','IC50','pIC50']
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     df_vars=df_data.columns.values.tolist()
     to_keep=[i for i in df_vars if i not in discard]
     X=df_data[to_keep]
     
+<<<<<<< HEAD
     #idxlist = df_data.index.astype(int)
     #first_pass = first_pass[idxlist]
     X[len(X.columns)] = first_pass
     
     print('Converting features to vectors (this takes a while)')
     #note to reader: i know i could be using "apply" for this but it actually takes longer
+=======
+    idxlist = df_data.index
+    first_pass = first_pass[idxlist[idxlist<1100000]]
+    X[len(X.columns)] = first_pass
+    
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     Z = np.empty(shape=[len(X),len(flattener(X.iloc[0]))])
     for n in range(len(X)):
         Z[n] = flattener(X.iloc[n])
@@ -209,8 +263,13 @@ def data_process_omic(df_data, first_pass, include_org = True):
     #TODO: allow adjusting this
     i1, i2 = np.random.choice( idx1, size=10000 ), np.random.choice( idx2, size=10000 )
     
+<<<<<<< HEAD
     X_train = Z[idx1]
     X_test = Z[idx2]
+=======
+    X_train = Z.iloc[idx1].to_numpy(dtype = object)
+    X_test = Z.iloc[idx2].to_numpy(dtype = object)
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     y_train =df_data['pIC50'].iloc[idx1].to_numpy(dtype = object)
     y_test = df_data['pIC50'].iloc[idx2].to_numpy(dtype = object)
     
@@ -227,6 +286,7 @@ def data_process_omic(df_data, first_pass, include_org = True):
     return X_train,X_test,y_train,y_test,cat_list
     
 def get_typelist(X):
+<<<<<<< HEAD
     """
     Fit all three models
             
@@ -238,16 +298,29 @@ def get_typelist(X):
     typelist = []
     for i in list(X):
         if isinstance(X[i].iloc[0],np.ndarray):
+=======
+    typelist = []
+    for i in list(X):
+        print(i, ':', type(X[i].iloc[0]))#, ':', X[i].iloc[1])
+        if isinstance(X[i].iloc[0],np.ndarray):
+            print(len(X[i].iloc[0]))
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
             typelist.extend([i]*len(X[i].iloc[0]))
         elif isinstance(X[i].iloc[0],tuple):
             for n in X[i].iloc[0]:
                 if isinstance(n,np.ndarray):
+<<<<<<< HEAD
                      typelist.extend([i]*len(n))
+=======
+                    print(len(n))
+                    typelist.extend([i]*len(n))
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
         elif i[:4] == 'var_':
             typelist.append('organism')
         else:
             typelist.append(i)
     return typelist
+<<<<<<< HEAD
 
 def model_metrics(model, X_test, y_test, typelist = None):
     """
@@ -269,13 +342,57 @@ def model_metrics(model, X_test, y_test, typelist = None):
         
     predictions['actual'] = y_test
     
+=======
+    
+def make_model2(X_train,X_test,y_train,y_test):
+    scaler = StandardScaler()
+    train_scaled = scaler.fit_transform(X_train)
+    test_scaled = scaler.transform(X_test)
+
+    # Set lower and upper quantile (TODO: allow adjustment)
+    LOWER_ALPHA = 0.1
+    UPPER_ALPHA = 0.9
+    # Each model has to be separate
+    lower_model = GradientBoostingRegressor(loss="quantile",                   
+                                            alpha=LOWER_ALPHA, n_estimators = 10)
+    # The mid model will use the default loss
+    mid_model = GradientBoostingRegressor(loss="ls", n_estimators = 10)
+    upper_model = GradientBoostingRegressor(loss="quantile",
+                                            alpha=UPPER_ALPHA, n_estimators = 10)
+                                            
+    print("Generating pIC50 estimates...")
+    mid_model.fit(train_scaled, y_train)
+    print("Calculating lower bound...")
+    lower_model.fit(train_scaled, y_train)
+    print("Calculating upper bound...")
+    upper_model.fit(train_scaled, y_train)
+    
+    _ = model.fit(X_train, y_train)
+    
+    return mid_model,lower_model, upper_model
+
+def model_metrics(model, X_test, y_test, lower_model = None, upper_model = None):
+    # Record actual values on test set
+    predictions = pd.DataFrame(y_test, columns = ['actual'])
+    predictions['mid'] = model.predict(X_test)
+    
+    if lower_model is not None:
+        predictions['lower'] = lower_model.predict(X_test)
+    
+    if upper_model is not None:
+        predictions['upper'] = upper_model.predict(X_test)
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     
     predictions['error'] = abs(predictions['actual'] - predictions['mid'])
     error1 = sum((predictions['error']<1)/len(predictions))
     error2 = sum((predictions['error']<2)/len(predictions))
     r = pearsonr(predictions['actual'],predictions['mid'])
     
+<<<<<<< HEAD
     print("Average error: ", np.mean(predictions['error']))
+=======
+    print("Average error: ", mean(predictions['error']))
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
     print("Fraction correct within one order of magnitude: ", error1 )
     print("Fraction correct within two orders of magnitude: ", error2 )
     print("Pearson's R = ",r)
@@ -284,6 +401,7 @@ def model_metrics(model, X_test, y_test, typelist = None):
     plt.xlabel('Reported pIC50')
     plt.ylabel('Predicted pIC50')
     plt.show()
+<<<<<<< HEAD
     
     importances = None
     type_importance = None
@@ -318,6 +436,30 @@ def model_usage(model, model2, X_drug, X_target, temp = 35, pH = 7, org = None):
     print("Upper bound: ", pred['upper'].values)
     return pred
 
+=======
+    return
+
+'''
+def model_usage(model, X_drug, X_target):
+    drug_encoding = model.drug_encoding
+    self.target_encoding = target_encoding
+    X_pred = utils.data_process(X_drug, X_target, y, 
+                                    drug_encoding, target_encoding, 
+                                    split_method='no_split')
+    y_pred = model.predict(X_pred)
+    
+    model = GradientBoostingPredictionIntervals(
+    lower_alpha=0.1, upper_alpha=0.9, n_estimators=50, max_depth=3
+)
+
+    # Fit and make predictions
+    predictions = model.predict(X_test, y_test)
+    metric_fig = model.calculate_and_show_errors()
+    iplot(metric_fig)
+    print('The predicted score is ' + str(y_pred))
+    return
+'''
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 
 class GBoostModel(BaseEstimator):
     """
@@ -330,6 +472,7 @@ class GBoostModel(BaseEstimator):
     """
 
     def __init__(self, lower_alpha=0.1, upper_alpha=0.9, drug_func_list= [drug2emb_encoder,smiles2daylight], 
+<<<<<<< HEAD
                     prot_func_list = [CalculateConjointTriad, protein2emb_encoder], temp_ph = True, org_list = None,
                     n_estimators = 10, init_model = None, **kwargs):
         """
@@ -343,6 +486,11 @@ class GBoostModel(BaseEstimator):
         self.lower_alpha = lower_alpha
         self.upper_alpha = upper_alpha
         self.init_model = init_model
+=======
+                    prot_func_list = [CalculateConjointTriad, protein2emb_encoder], temp_ph = True, org_list = None, **kwargs):
+        self.lower_alpha = lower_alpha
+        self.upper_alpha = upper_alpha
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 
         self.drug_func_list = drug_func_list
         self.prot_func_list = prot_func_list
@@ -354,6 +502,7 @@ class GBoostModel(BaseEstimator):
             #TODO: figure out a way to do a default here
             
         # Three separate models
+<<<<<<< HEAD
         self.lower_model = GradientBoostingRegressor(loss="quantile", alpha=self.lower_alpha, n_estimators = n_estimators, **kwargs)
         self.mid_model = GradientBoostingRegressor(loss="ls", n_estimators = n_estimators, **kwargs)
         self.upper_model = GradientBoostingRegressor(loss="quantile", alpha=self.upper_alpha, n_estimators = n_estimators, **kwargs)
@@ -362,6 +511,14 @@ class GBoostModel(BaseEstimator):
         self.typelist = []
 
     def fit(self, X_train, y_train):
+=======
+        self.lower_model = GradientBoostingRegressor(loss="quantile", alpha=self.lower_alpha, **kwargs)
+        self.mid_model = GradientBoostingRegressor(loss="ls", **kwargs)
+        self.upper_model = GradientBoostingRegressor(loss="quantile", alpha=self.upper_alpha, **kwargs)
+        self.predictions = None
+
+    def fit(self, X, y):
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
         """
         Fit all three models
             
@@ -370,6 +527,7 @@ class GBoostModel(BaseEstimator):
         
         TODO: parallelize this code across processors
         """
+<<<<<<< HEAD
         
         train_scaled = self.scaler.fit_transform(X_train)
         
@@ -397,6 +555,13 @@ class GBoostModel(BaseEstimator):
         return predictions
     
     def predict_drug(self, X_drug, X_target, first_pass = None, temp = 35, pH = 7, org = None):
+=======
+        self.lower_model.fit(X_train, y_train)
+        self.mid_model.fit(X_train, y_train)
+        self.upper_model.fit(X_train, y_train)
+
+    def predict(self, X_drug, X_target, first_pass, temp = 35, pH = 7, org = None):
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
         """
         Predict with all 3 models 
         
@@ -406,6 +571,7 @@ class GBoostModel(BaseEstimator):
         
         TODO: parallelize this code across processors
         """
+<<<<<<< HEAD
         if first_pass is None:
             proc = DeepPurpose.utils.data_process(X_drug, X_target, 0, 
                                 self.init_model.drug_encoding, model.target_encoding, 
@@ -413,11 +579,14 @@ class GBoostModel(BaseEstimator):
             first_pass = self.init_model.predict(proc)
         
         df_data = pd.DataFrame()
+=======
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
         df_data['SMILES'] = X_drug
         df_data['Target Sequence'] = X_target
         if self.temp_ph:
             df_data['pH'] = pH
             df_data['Temp'] = temp
+<<<<<<< HEAD
         
         df_data = feature_select(df_data, self.drug_func_list, self.prot_func_list)
         df_data=df_data.join(self.org_list)
@@ -437,6 +606,24 @@ class GBoostModel(BaseEstimator):
         Z[s]=0.0
 
         predictions = self.predict(Z.reshape(1, -1))
+=======
+        df_data=df_data.join(self.org_list)
+        if org is not None:
+            df_data['var_'+org] = 1
+        
+        df_data = feature_select(df_data, self.drug_func_list, self.prot_func_list)
+        discard=['SMILES','Target Sequence','Organism','IC50','pIC50']
+        df_vars=df_data.columns.values.tolist()
+        to_keep=[i for i in df_vars if i not in discard]
+        X=df_data[to_keep]
+        X[len(X.columns)] = first_pass
+        Z = flattener(X)
+        
+        predictions["lower"] = self.lower_model.predict(Z)
+        predictions["mid"] = self.mid_model.predict(Z)
+        predictions["upper"] = self.upper_model.predict(Z)
+        self.predictions = predictions
+>>>>>>> a60a741840171fee246555640ef275eea38f9b2a
 
         return predictions
 
